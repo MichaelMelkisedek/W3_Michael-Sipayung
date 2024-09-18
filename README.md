@@ -26,6 +26,35 @@ This project is a web application built with Vue.js and served using Nginx in a 
    npm install
    docker build -t w3-docker .
    docker run -p 8080:80 w3-docker
+   # Copy package.json and package-lock.json
+   COPY package*.json ./
+
+   # Clean npm cache
+   RUN npm cache clean --force
+
+   # Install dependencies
+   RUN npm install --legacy-peer-deps
+
+   # Copy the rest of the application code
+   COPY . .
+
+   # Build the application
+   RUN npm run build
+
+   # Stage 2: Serve the application
+   FROM nginx:alpine
+
+   # Copy the build files from the previous stage
+   COPY --from=build /app/dist /usr/share/nginx/html
+
+   # Copy nginx configuration file
+   COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+   # Expose the port on which the app will run
+   EXPOSE 80
+
+   # Start nginx
+   docker run -p 8080:80 my-vue-app
 
    
 ### Instructions
